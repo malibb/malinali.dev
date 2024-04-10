@@ -1,14 +1,17 @@
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 import SocialLink from "./social-link";
 
 interface SocialProps {
   title: string,
+  children: ReactNode,
 };
 
-const Social: FC<SocialProps> = ({ title }) => {
+const Social: FC<SocialProps> = ({ title, children }) => {
   return (
     <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-2 lg:px-8">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8">
+        
+        {children}
         <h1 className="pb-1 text-center text-4xl font-bold text-gray-900">
           {title}
         </h1>
