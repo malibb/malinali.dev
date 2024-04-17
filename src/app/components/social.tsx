@@ -41,6 +41,10 @@ const Social: FC<SocialProps> = ({ title, children }) => {
               url="mailto:malinalibb98@gmail.com"
               text="Email"
             />
+            <SocialLink
+              url="https://edu.devf.la/courses/antes-del-codigo?target=meetups"
+              text="CURSO: ANTES DEL CÖDIGO"
+            />
           </div>
         </div>
       </div>
