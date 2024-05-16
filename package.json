@@ -10,6 +10,7 @@
     "export": "next export"
   },
   "dependencies": {
+    "@next/third-parties": "^14.2.3",
     "firebase": "^10.8.1",
     "next": "14.1.3",
     "react": "^18",
