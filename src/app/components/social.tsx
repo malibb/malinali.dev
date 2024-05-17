@@ -12,7 +12,7 @@ const Social: FC<SocialProps> = ({ title, children }) => {
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8">
         
         {children}
-        <h1 className="pb-1 text-center text-4xl font-bold text-gray-900">
+        <h1 className="pb-1 text-center text-4xl font-bold text-gray-900 dark:text-white">
           {title}
         </h1>
         <p className="p-3 text-center"> Software Developer | Senseí | Mentora | Embajadora | Organizadora | Facilitadora | Líder Técnica </p>
