@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Malinali Becerril",
-  description: "Malinali Becerril, software, startups, comunnity, painting, cycling, teach, mentor, woman",
+  description: "Malinali Becerril, software, startups, community, painting, cycling, teach, mentor, woman",
 };
 
 export default function RootLayout({

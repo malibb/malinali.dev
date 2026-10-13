@@ -43,7 +43,7 @@ const Social: FC<SocialProps> = ({ title, children }) => {
             />
             <SocialLink
               url="https://edu.devf.la/courses/antes-del-codigo?target=meetups"
-              text="CURSO: ANTES DEL CÖDIGO"
+              text="CURSO: ANTES DEL CÓDIGO"
             />
           </div>
         </div>
