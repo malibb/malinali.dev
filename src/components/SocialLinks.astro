@@ -62,8 +62,17 @@ const socialLinks = [
 	.social-dock {
 		display: flex;
 		justify-content: center;
-		padding: 2.5rem 1rem 3rem;
-		margin-top: auto;
+		padding: 1.25rem 0 0.25rem;
+		margin: 0;
+		position: relative;
+		z-index: 10;
+		width: 100%;
+	}
+
+	@media (max-width: 768px) {
+		.social-dock {
+			padding: 1rem 0 0;
+		}
 	}
 
 	.social-nav {
@@ -79,6 +88,13 @@ const socialLinks = [
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 	}
 
+	@media (max-width: 768px) {
+		.social-nav {
+			gap: 0.65rem;
+			padding: 0.45rem 0.75rem;
+		}
+	}
+
 	.social-circle {
 		display: flex;
 		align-items: center;
@@ -92,6 +108,13 @@ const socialLinks = [
 		text-decoration: none;
 		transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 		will-change: transform, box-shadow;
+	}
+
+	@media (max-width: 768px) {
+		.social-circle {
+			width: 40px;
+			height: 40px;
+		}
 	}
 
 	.icon {

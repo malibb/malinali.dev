@@ -1,0 +1,768 @@
+---
+import { getInventory } from '../data/inventory';
+
+const currentLocale = (Astro.currentLocale || 'es') as 'es' | 'en';
+const inventory = getInventory(currentLocale);
+---
+
+<section class="terminal-station-section" id="terminal-station" aria-label="Terminal interactiva">
+	<div class="terminal-shell" id="term-shell">
+		<!-- CRT Scanline overlay effect -->
+		<div class="crt-scanlines" aria-hidden="true"></div>
+
+		<!-- Terminal Window Top Bar -->
+		<div class="term-window-bar font-mono">
+			<div class="term-traffic">
+				<span class="term-dot dot-red" id="btn-term-clear" title="Clear terminal"></span>
+				<span class="term-dot dot-yellow" title="Reset"></span>
+				<span class="term-dot dot-green" title="Status online"></span>
+			</div>
+			<div class="term-title">
+				<span class="term-glow-icon">📡</span>
+				<span>malibb@deck:~ (zsh)</span>
+			</div>
+			<span class="term-status neon-cyan">[ ONLINE ]</span>
+		</div>
+
+		<!-- Quick Macro Bar for fast clicking on mobile or desktop -->
+		<div class="term-macros-bar font-mono">
+			<span class="macro-label">MACROS:</span>
+			<div class="macro-chips-wrap">
+				<button type="button" class="term-macro" data-cmd="help">help</button>
+				<button type="button" class="term-macro" data-cmd="scopely">scopely</button>
+				<button type="button" class="term-macro" data-cmd="lootmint">lootmint</button>
+				<button type="button" class="term-macro" data-cmd="sabbatical">sabbatical</button>
+				<button type="button" class="term-macro" data-cmd="devf">devf</button>
+				<button type="button" class="term-macro" data-cmd="teaching">teaching</button>
+				<button type="button" class="term-macro" data-cmd="community">community</button>
+				<button type="button" class="term-macro" data-cmd="stack">stack</button>
+				<button type="button" class="term-macro" data-cmd="stats">stats</button>
+				<button type="button" class="term-macro" data-cmd="clear">clear</button>
+			</div>
+		</div>
+
+		<!-- Terminal Screen Log (scrollable console log buffer) -->
+		<div class="term-screen font-mono" id="term-screen">
+			<!-- Welcome Banner -->
+			<div class="term-welcome">
+				<div class="welcome-title neon-cyan">MALIBB DECK OS [v2.6.4] — (x86_64-deck-kernel)</div>
+				<div class="welcome-sub text-muted">
+					{currentLocale === 'es' 
+						? '(c) 2026 Malinali Becerril. Todos los módulos cargados.' 
+						: '(c) 2026 Malinali Becerril. All modules loaded.'}
+				</div>
+				<div class="welcome-hint neon-yellow">
+					{currentLocale === 'es'
+						? "> Escribe 'help' o haz clic en las macros arriba para explorar experiencia y proyectos."
+						: "> Type 'help' or click any macro above to explore experience and projects."}
+				</div>
+			</div>
+
+			<!-- Output History Log Container -->
+			<div class="term-log-entries" id="term-log-entries"></div>
+
+			<!-- Active Interactive Command Line -->
+			<div class="term-prompt-active">
+				<span class="prompt-user neon-cyan">malibb@deck:~$</span>
+				<input
+					type="text"
+					id="term-input"
+					autocomplete="off"
+					spellcheck="false"
+					placeholder={currentLocale === 'es' ? "escribe 'help', 'scopely', 'stats'..." : "type 'help', 'scopely', 'stats'..."}
+				/>
+				<button type="button" class="term-exec-btn font-mono" id="term-exec-btn">EXEC</button>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Data payload & Terminal Engine -->
+<script define:vars={{ inventoryData: inventory, locale: currentLocale }}>
+	function initInteractiveTerminal() {
+		const termShell = document.getElementById('term-shell');
+		const termScreen = document.getElementById('term-screen');
+		const logEntries = document.getElementById('term-log-entries');
+		const termInput = document.getElementById('term-input');
+		const execBtn = document.getElementById('term-exec-btn');
+		const macroBtns = document.querySelectorAll('.term-macro');
+		const btnClear = document.getElementById('btn-term-clear');
+
+		if (!termInput || !logEntries) return;
+
+		let history = [];
+		let historyIndex = -1;
+
+		function scrollToBottom() {
+			if (termScreen) {
+				termScreen.scrollTop = termScreen.scrollHeight;
+			}
+		}
+
+		// Focus input when clicking anywhere on the terminal window
+		termShell?.addEventListener('click', (e) => {
+			if (!e.target.closest('.term-macro') && !e.target.closest('a')) {
+				termInput.focus();
+			}
+		});
+
+		function executeCommand(raw) {
+			const cmd = raw.trim();
+			if (!cmd) return;
+
+			// Add to history
+			history.push(cmd);
+			historyIndex = history.length;
+
+			const query = cmd.toLowerCase();
+
+			// Echo command line into log
+			const entryEl = document.createElement('div');
+			entryEl.className = 'term-entry';
+
+			const promptEl = document.createElement('div');
+			promptEl.className = 'cmd-echo-row';
+			promptEl.innerHTML = `<span class="echo-prompt neon-cyan">malibb@deck:~$</span> <span class="echo-cmd">${escapeHtml(cmd)}</span>`;
+			entryEl.appendChild(promptEl);
+
+			const outputEl = document.createElement('div');
+			outputEl.className = 'cmd-output-block';
+
+			// Command handling
+			if (query === 'clear' || query === 'cls') {
+				logEntries.innerHTML = '';
+				termInput.value = '';
+				scrollToBottom();
+				return;
+			}
+
+			if (query === 'help') {
+				outputEl.innerHTML = `
+					<div class="help-box">
+						<div class="help-title neon-yellow">${locale === 'es' ? '// COMANDOS DISPONIBLES:' : '// AVAILABLE COMMANDS:'}</div>
+						<div class="help-grid">
+							<div><strong class="neon-cyan">scopely</strong> - ${locale === 'es' ? 'Chat Discord Java (+500K DAU) & servidores Unity C#' : 'Discord chat in Java (+500K DAU) & Unity C# game servers'}</div>
+							<div><strong class="neon-cyan">lootmint</strong> - ${locale === 'es' ? 'MVP Game-Fi, economía shards & AWS (NestJS, Next.js)' : 'Game-Fi MVP, shard economy & AWS (NestJS, Next.js)'}</div>
+							<div><strong class="neon-cyan">sabbatical</strong> - ${locale === 'es' ? 'Pausa Intencional 2026, Mentoría Estratégica & GenAI' : '2026 Sabbatical Oasis, Strategic Mentorship & GenAI'}</div>
+							<div><strong class="neon-cyan">devf</strong> - ${locale === 'es' ? 'Escaló plataforma EdTech a 2,500+ alumnos & GCP pipelines' : 'Scaled EdTech platform to 2,500+ students & GCP CRM'}</div>
+							<div><strong class="neon-cyan">teaching</strong> - ${locale === 'es' ? 'Lead Mentor TECNOLOchicas & Coordinadora 50+ Senseis' : 'Lead Mentor TECNOLOchicas & 50+ Senseis Coordinator'}</div>
+							<div><strong class="neon-cyan">community</strong> - ${locale === 'es' ? 'Google for Startups Accelerator Mentor & WTM Ambassador' : 'Google for Startups Accelerator Mentor & WTM Ambassador'}</div>
+							<div><strong class="neon-cyan">stack</strong> - ${locale === 'es' ? 'Arsenal Técnico Políglota & Ing. Sistemas ESCOM IPN' : 'Polyglot Tech Arsenal & B.S. ESCOM IPN'}</div>
+							<div><strong class="neon-cyan">stats</strong> - ${locale === 'es' ? 'Atributos de sistema (Scale 95%, Systems 98%, Community 99%)' : 'System attributes (Scale 95%, Systems 98%, Community 99%)'}</div>
+							<div><strong class="neon-cyan">all</strong> - ${locale === 'es' ? 'Muestra todo el historial de experiencia' : 'Display full experience log'}</div>
+							<div><strong class="neon-cyan">clear</strong> - ${locale === 'es' ? 'Limpia la pantalla de la terminal' : 'Clear terminal output buffer'}</div>
+						</div>
+					</div>
+				`;
+			} else if (query === 'stats') {
+				outputEl.innerHTML = `
+					<div class="stats-box">
+						<div class="stats-head neon-yellow">${locale === 'es' ? '// RATINGS DE ATRIBUTOS DEL SISTEMA:' : '// SYSTEM ATTRIBUTE RATINGS:'}</div>
+						<div class="stat-line">
+							<span class="s-name">STR (Scale & Concurrency):</span>
+							<div class="s-bar"><div class="s-fill" style="width: 95%; background: #ffe600; box-shadow: 0 0 8px #ffe600;"></div></div>
+							<span class="s-val neon-yellow">95%</span>
+						</div>
+						<div class="stat-line">
+							<span class="s-name">INT (Systems & Architecture):</span>
+							<div class="s-bar"><div class="s-fill" style="width: 98%; background: #00f5ff; box-shadow: 0 0 8px #00f5ff;"></div></div>
+							<span class="s-val neon-cyan">98%</span>
+						</div>
+						<div class="stat-line">
+							<span class="s-name">CHA (Community & Mentorship):</span>
+							<div class="s-bar"><div class="s-fill" style="width: 99%; background: #ff007f; box-shadow: 0 0 8px #ff007f;"></div></div>
+							<span class="s-val neon-pink">99%</span>
+						</div>
+						<div class="stat-line">
+							<span class="s-name">AGI (Full Stack & GenAI):</span>
+							<div class="s-bar"><div class="s-fill" style="width: 92%; background: #ccff00; box-shadow: 0 0 8px #ccff00;"></div></div>
+							<span class="s-val neon-lime">92%</span>
+						</div>
+					</div>
+				`;
+			} else if (query === 'all' || query === 'cv') {
+				outputEl.innerHTML = inventoryData.map((item) => renderItemCard(item)).join('');
+			} else {
+				// Search matching inventory item
+				const matched = inventoryData.find(
+					(x) => query.includes(x.id) || x.title.toLowerCase().includes(query.replace('inspect ', ''))
+				);
+
+				if (matched) {
+					outputEl.innerHTML = renderItemCard(matched);
+				} else {
+					outputEl.innerHTML = `
+						<div class="err-line text-error">
+							${locale === 'es' ? `zsh: comando no encontrado: '${escapeHtml(cmd)}'. Escribe 'help' para ver los comandos disponibles.` : `zsh: command not found: '${escapeHtml(cmd)}'. Type 'help' for available commands.`}
+						</div>
+					`;
+				}
+			}
+
+			entryEl.appendChild(outputEl);
+			logEntries.appendChild(entryEl);
+
+			termInput.value = '';
+			scrollToBottom();
+		}
+
+		function renderItemCard(item) {
+			const rarityClass = `rarity-${item.rarity.toLowerCase()}`;
+			const telemetryChips = item.stats
+				.map((s) => `<div class="t-chip"><span class="t-k">${s.name}:</span><strong class="t-v neon-cyan">${s.val}</strong></div>`)
+				.join('');
+			const tagsPills = item.tags
+				.map((t) => `<span class="tag-pill">${t}</span>`)
+				.join('');
+
+			return `
+				<div class="item-log-card">
+					<div class="card-head">
+						<span class="c-icon">${item.icon}</span>
+						<div class="c-meta">
+							<div class="c-title-row">
+								<h3 class="c-title">${item.title}</h3>
+								<span class="c-rarity ${rarityClass}">${item.rarityLabel}</span>
+							</div>
+							<div class="c-sub">${item.type} · <span class="c-metric">${item.metric}</span></div>
+						</div>
+					</div>
+					<p class="c-desc">${item.description}</p>
+					<div class="c-lore"><strong class="neon-yellow">// PERK:</strong> ${item.lore}</div>
+					<div class="c-telemetry">${telemetryChips}</div>
+					<div class="c-tags">${tagsPills}</div>
+				</div>
+			`;
+		}
+
+		function escapeHtml(str) {
+			return str
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		}
+
+		// Macro clicks
+		macroBtns.forEach((btn) => {
+			btn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const cmd = btn.dataset.cmd;
+				if (cmd) executeCommand(cmd);
+			});
+		});
+
+		// Clear dot
+		btnClear?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			executeCommand('clear');
+		});
+
+		// Exec button click
+		execBtn?.addEventListener('click', () => {
+			executeCommand(termInput.value);
+		});
+
+		// Keydown events
+		termInput?.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') {
+				executeCommand(termInput.value);
+			} else if (e.key === 'ArrowUp') {
+				if (history.length > 0 && historyIndex > 0) {
+					historyIndex--;
+					termInput.value = history[historyIndex];
+				}
+			} else if (e.key === 'ArrowDown') {
+				if (historyIndex < history.length - 1) {
+					historyIndex++;
+					termInput.value = history[historyIndex];
+				} else {
+					historyIndex = history.length;
+					termInput.value = '';
+				}
+			}
+		});
+	}
+
+	initInteractiveTerminal();
+	document.addEventListener('astro:after-swap', initInteractiveTerminal);
+</script>
+
+<style>
+	.terminal-station-section {
+		position: relative;
+		z-index: 2;
+		padding: 0.5rem 1.5rem 4rem;
+		max-width: 960px;
+		margin: 0 auto;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.terminal-shell {
+		position: relative;
+		background: rgba(10, 14, 22, 0.94);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 1px solid rgba(0, 245, 255, 0.25);
+		border-radius: 1rem;
+		overflow: hidden;
+		box-shadow:
+			0 16px 48px rgba(0, 0, 0, 0.8),
+			0 0 25px rgba(0, 245, 255, 0.12),
+			inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	}
+
+	.crt-scanlines {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+		background-size: 100% 4px;
+		pointer-events: none;
+		z-index: 10;
+		opacity: 0.2;
+	}
+
+	/* Title Bar */
+	.term-window-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem 1.25rem;
+		background: rgba(8, 10, 16, 0.98);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		font-size: 0.8125rem;
+		position: relative;
+		z-index: 2;
+	}
+
+	.term-traffic {
+		display: flex;
+		gap: 0.45rem;
+	}
+
+	.term-dot {
+		width: 11px;
+		height: 11px;
+		border-radius: 50%;
+		cursor: default;
+	}
+
+	.dot-red { background: #ff5f56; cursor: pointer; }
+	.dot-yellow { background: #ffbd2e; }
+	.dot-green { background: #27c93f; }
+
+	.term-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #cbd5e1;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+	}
+
+	.term-status {
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
+
+	/* Macros Row */
+	.term-macros-bar {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		padding: 0.6rem 1.25rem;
+		background: rgba(14, 18, 28, 0.75);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		font-size: 0.6875rem;
+		position: relative;
+		z-index: 2;
+	}
+
+	.macro-label {
+		color: #64748b;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+	}
+
+	.macro-chips-wrap {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.term-macro {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: #94a3b8;
+		padding: 0.18rem 0.55rem;
+		border-radius: 4px;
+		font-size: 0.6875rem;
+		font-family: inherit;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.term-macro:hover {
+		color: #00f5ff;
+		border-color: rgba(0, 245, 255, 0.5);
+		background: rgba(0, 245, 255, 0.1);
+	}
+
+	/* Terminal Screen */
+	.term-screen {
+		position: relative;
+		z-index: 2;
+		padding: 1.25rem;
+		min-height: 320px;
+		max-height: 520px;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(0, 245, 255, 0.3) rgba(10, 14, 22, 0.5);
+	}
+
+	.term-screen::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.term-screen::-webkit-scrollbar-thumb {
+		background: rgba(0, 245, 255, 0.3);
+		border-radius: 4px;
+	}
+
+	/* Welcome message */
+	.term-welcome {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		font-size: 0.8125rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+	}
+
+	.welcome-title {
+		font-weight: 700;
+		letter-spacing: 0.04em;
+	}
+
+	.welcome-sub {
+		color: #64748b;
+	}
+
+	.welcome-hint {
+		margin-top: 0.2rem;
+		font-weight: 600;
+	}
+
+	/* Log entries */
+	.term-log-entries {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	:global(.term-entry) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+		animation: termStreamIn 0.22s ease-out forwards;
+	}
+
+	@keyframes termStreamIn {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	:global(.cmd-echo-row) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+	}
+
+	:global(.echo-prompt) {
+		font-weight: 700;
+	}
+
+	:global(.echo-cmd) {
+		color: #ffffff;
+		font-weight: 600;
+	}
+
+	:global(.cmd-output-block) {
+		padding-left: 0.5rem;
+	}
+
+	/* Error line */
+	:global(.err-line) {
+		color: #ff0055;
+		font-size: 0.8125rem;
+	}
+
+	/* Help table */
+	:global(.help-box) {
+		background: rgba(14, 18, 28, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		font-size: 0.8125rem;
+	}
+
+	:global(.help-title) {
+		font-weight: 700;
+		letter-spacing: 0.05em;
+	}
+
+	:global(.help-grid) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		color: #94a3b8;
+		line-height: 1.5;
+	}
+
+	/* Stats Output */
+	:global(.stats-box) {
+		background: rgba(14, 18, 28, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	:global(.stats-head) {
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		margin-bottom: 0.25rem;
+	}
+
+	:global(.stat-line) {
+		display: grid;
+		grid-template-columns: 220px 1fr 45px;
+		align-items: center;
+		gap: 0.85rem;
+		font-size: 0.75rem;
+	}
+
+	:global(.s-name) {
+		color: #94a3b8;
+	}
+
+	:global(.s-bar) {
+		height: 8px;
+		background: rgba(255, 255, 255, 0.08);
+		border-radius: 9999px;
+		overflow: hidden;
+	}
+
+	:global(.s-fill) {
+		height: 100%;
+		border-radius: 9999px;
+	}
+
+	:global(.s-val) {
+		font-weight: 700;
+		text-align: right;
+	}
+
+	/* Card Output */
+	:global(.item-log-card) {
+		background: rgba(14, 18, 28, 0.7);
+		border: 1px solid rgba(0, 245, 255, 0.2);
+		border-radius: 10px;
+		padding: 1.1rem 1.35rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 0.75rem;
+	}
+
+	:global(.card-head) {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+	}
+
+	:global(.c-icon) {
+		font-size: 1.8rem;
+		line-height: 1;
+	}
+
+	:global(.c-meta) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		flex-grow: 1;
+	}
+
+	:global(.c-title-row) {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.65rem;
+	}
+
+	:global(.c-title) {
+		font-size: 1.1rem;
+		font-weight: 800;
+		color: #ffffff;
+		margin: 0;
+	}
+
+	:global(.c-rarity) {
+		font-size: 0.625rem;
+		font-weight: 700;
+		padding: 0.15rem 0.45rem;
+		border-radius: 4px;
+	}
+
+	:global(.c-sub) {
+		font-size: 0.75rem;
+		color: #94a3b8;
+	}
+
+	:global(.c-metric) {
+		color: #00f5ff;
+		font-weight: 600;
+	}
+
+	:global(.c-desc) {
+		font-size: 0.875rem;
+		color: #cbd5e1;
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	:global(.c-lore) {
+		font-size: 0.8125rem;
+		color: #f1f5f9;
+		background: rgba(255, 230, 0, 0.04);
+		border-left: 3px solid #ffe600;
+		padding: 0.5rem 0.75rem;
+		border-radius: 4px;
+	}
+
+	:global(.c-telemetry) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		font-size: 0.75rem;
+	}
+
+	:global(.t-chip) {
+		display: flex;
+		gap: 0.35rem;
+	}
+
+	:global(.t-k) {
+		color: #64748b;
+	}
+
+	:global(.c-tags) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	:global(.tag-pill) {
+		font-size: 0.6875rem;
+		color: #94a3b8;
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		padding: 0.18rem 0.5rem;
+		border-radius: 4px;
+	}
+
+	/* Active Prompt Line */
+	.term-prompt-active {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		margin-top: auto;
+		padding-top: 0.5rem;
+	}
+
+	.prompt-user {
+		font-size: 0.875rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	#term-input {
+		flex-grow: 1;
+		background: transparent;
+		border: none;
+		outline: none;
+		color: #ffffff;
+		font-family: var(--font-mono);
+		font-size: 0.875rem;
+		padding: 0.2rem 0;
+	}
+
+	#term-input::placeholder {
+		color: #64748b;
+	}
+
+	.term-exec-btn {
+		background: rgba(0, 245, 255, 0.1);
+		border: 1px solid rgba(0, 245, 255, 0.4);
+		color: #00f5ff;
+		padding: 0.25rem 0.85rem;
+		border-radius: 4px;
+		font-size: 0.72rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.term-exec-btn:hover {
+		background: rgba(0, 245, 255, 0.25);
+		box-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
+	}
+
+	/* Rarity Colors */
+	:global(.rarity-mythic) { color: #00f5ff; background: rgba(0, 245, 255, 0.12); border: 1px solid rgba(0, 245, 255, 0.3); }
+	:global(.rarity-legendary) { color: #ffe600; background: rgba(255, 230, 0, 0.12); border: 1px solid rgba(255, 230, 0, 0.3); }
+	:global(.rarity-epic) { color: #ff007f; background: rgba(255, 0, 127, 0.12); border: 1px solid rgba(255, 0, 127, 0.3); }
+	:global(.rarity-rare) { color: #00f5ff; background: rgba(0, 245, 255, 0.1); border: 1px solid rgba(0, 245, 255, 0.2); }
+	:global(.rarity-exotic) { color: #ccff00; background: rgba(204, 255, 0, 0.12); border: 1px solid rgba(204, 255, 0, 0.3); }
+
+	.neon-cyan { color: #00f5ff; text-shadow: 0 0 8px rgba(0, 245, 255, 0.4); }
+	.neon-yellow { color: #ffe600; }
+	.neon-pink { color: #ff007f; }
+	.neon-lime { color: #ccff00; }
+
+	@media (max-width: 640px) {
+		.terminal-station-section {
+			padding: 0.25rem 1rem 2.5rem;
+		}
+
+		.term-screen {
+			min-height: 280px;
+			max-height: 440px;
+			padding: 1rem;
+		}
+
+		:global(.stat-line) {
+			grid-template-columns: 140px 1fr 38px;
+		}
+	}
+</style>

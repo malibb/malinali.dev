@@ -1,0 +1,313 @@
+---
+import type { InventoryItem } from '../data/inventory';
+
+interface Props {
+	inventory: InventoryItem[];
+	locale?: 'es' | 'en';
+}
+
+const { inventory, locale = 'es' } = Astro.props;
+---
+
+<!-- Left Column: Character Stats & Inventory Grid -->
+<div class="game-panel left-panel">
+	<div class="panel-header font-mono">
+		<div class="panel-title-group">
+			<span class="panel-icon">🎒</span>
+			<span class="panel-title">// INVENTORY & LOOT ARTIFACTS</span>
+		</div>
+		<span class="panel-count font-mono">[ {inventory.length} / {inventory.length} ]</span>
+	</div>
+
+	<p class="panel-hint font-mono">
+		{
+			locale === 'es'
+				? '> Selecciona un ítem o shard para inspeccionar su lore y telemetría:'
+				: '> Select an item or shard to inspect its lore and telemetry:'
+		}
+	</p>
+
+	<!-- Inventory Item Slots -->
+	<div class="inventory-grid" role="tablist" aria-label="Inventario de ítems">
+		{
+			inventory.map((item, index) => (
+				<button
+					type="button"
+					class={`inv-slot ${index === 0 ? 'is-active' : ''}`}
+					data-item-id={item.id}
+					style={`--slot-accent: ${item.accent};`}
+					role="tab"
+					aria-selected={index === 0 ? 'true' : 'false'}
+					aria-controls="terminal-inspector"
+				>
+					<div class="slot-top font-mono">
+						<span class="slot-idx">#{index + 1}</span>
+						<span class={`rarity-tag rarity-${item.rarity.toLowerCase()}`}>
+							{item.rarity}
+						</span>
+					</div>
+					<div class="slot-icon">{item.icon}</div>
+					<div class="slot-name">{item.title.split(':')[0]}</div>
+					<div class="slot-sub font-mono">{item.metric}</div>
+				</button>
+			))
+		}
+	</div>
+
+	<!-- Player Character Stats Attributes -->
+	<div class="character-stats-section font-mono">
+		<div class="stats-title">// ATTRIBUTE RATINGS</div>
+		<div class="stat-row">
+			<span class="stat-name">STR (Scale & Concu...</span>
+			<div class="stat-bar"><div class="stat-fill fill-yellow" style="width: 95%;"></div></div>
+			<span class="stat-num neon-yellow">95%</span>
+		</div>
+		<div class="stat-row">
+			<span class="stat-name">INT (Systems & Arc...</span>
+			<div class="stat-bar"><div class="stat-fill fill-cyan" style="width: 98%;"></div></div>
+			<span class="stat-num neon-cyan">98%</span>
+		</div>
+		<div class="stat-row">
+			<span class="stat-name">CHA (Community & M...</span>
+			<div class="stat-bar"><div class="stat-fill fill-pink" style="width: 99%;"></div></div>
+			<span class="stat-num neon-pink">99%</span>
+		</div>
+		<div class="stat-row">
+			<span class="stat-name">AGI (Full Stack & ...</span>
+			<div class="stat-bar"><div class="stat-fill fill-lime" style="width: 92%;"></div></div>
+			<span class="stat-num neon-lime">92%</span>
+		</div>
+	</div>
+</div>
+
+<style>
+	.game-panel {
+		position: relative;
+		border-radius: 1.5rem;
+		background: rgba(12, 16, 26, 0.82);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+		box-sizing: border-box;
+	}
+
+	.left-panel {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.panel-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #ffffff;
+		padding-bottom: 0.25rem;
+	}
+
+	.panel-title-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.panel-icon {
+		font-size: 1rem;
+	}
+
+	.panel-title {
+		letter-spacing: 0.04em;
+	}
+
+	.panel-count {
+		color: #00f5ff;
+		letter-spacing: 0.08em;
+	}
+
+	.panel-hint {
+		font-size: 0.75rem;
+		color: #64748b;
+		margin: 0;
+		line-height: 1.4;
+	}
+
+	/* Inventory Slots Grid */
+	.inventory-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
+	}
+
+	.inv-slot {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 0.95rem 1rem;
+		border-radius: 0.9rem;
+		background: rgba(20, 24, 38, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: inherit;
+		cursor: pointer;
+		text-align: left;
+		transition: all 0.22s ease-out;
+		overflow: hidden;
+		box-sizing: border-box;
+		min-height: 120px;
+	}
+
+	.inv-slot:hover {
+		transform: translateY(-2px);
+		border-color: rgba(255, 255, 255, 0.2);
+		background: rgba(26, 32, 50, 0.75);
+	}
+
+	/* Active slot matching the screenshot: vibrant cyan border & outer glow */
+	.inv-slot.is-active {
+		border: 1.5px solid #00f5ff;
+		background: rgba(18, 28, 46, 0.88);
+		box-shadow: 0 0 20px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.08);
+	}
+
+	.slot-top {
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 0.6875rem;
+		color: #64748b;
+		margin-bottom: 0.35rem;
+	}
+
+	.slot-idx {
+		color: #64748b;
+		font-weight: 600;
+	}
+
+	.slot-icon {
+		font-size: 1.4rem;
+		margin-bottom: 0.4rem;
+		line-height: 1;
+	}
+
+	.slot-name {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #ffffff;
+		line-height: 1.25;
+		margin-bottom: 0.25rem;
+	}
+
+	.slot-sub {
+		font-size: 0.6875rem;
+		color: #94a3b8;
+		line-height: 1.3;
+	}
+
+	/* Rarity Tags */
+	.rarity-tag {
+		font-size: 0.625rem;
+		font-weight: 700;
+		padding: 0.15rem 0.45rem;
+		border-radius: 0.25rem;
+		letter-spacing: 0.06em;
+	}
+
+	.rarity-mythic {
+		color: #00f5ff;
+		background: rgba(0, 245, 255, 0.12);
+		border: 1px solid rgba(0, 245, 255, 0.3);
+	}
+	.rarity-legendary {
+		color: #ffe600;
+		background: rgba(255, 230, 0, 0.12);
+		border: 1px solid rgba(255, 230, 0, 0.3);
+	}
+	.rarity-epic {
+		color: #ff007f;
+		background: rgba(255, 0, 127, 0.12);
+		border: 1px solid rgba(255, 0, 127, 0.3);
+	}
+	.rarity-rare {
+		color: #00f5ff;
+		background: rgba(0, 245, 255, 0.1);
+		border: 1px solid rgba(0, 245, 255, 0.2);
+	}
+	.rarity-exotic {
+		color: #ccff00;
+		background: rgba(204, 255, 0, 0.12);
+		border: 1px solid rgba(204, 255, 0, 0.3);
+	}
+
+	/* Attribute Ratings */
+	.character-stats-section {
+		margin-top: 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	.stats-title {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #64748b;
+		margin-bottom: 0.2rem;
+		letter-spacing: 0.05em;
+	}
+
+	.stat-row {
+		display: grid;
+		grid-template-columns: 140px 1fr 40px;
+		align-items: center;
+		gap: 0.75rem;
+		font-size: 0.75rem;
+	}
+
+	.stat-name {
+		color: #94a3b8;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.stat-bar {
+		height: 8px;
+		background: rgba(255, 255, 255, 0.08);
+		border-radius: 9999px;
+		overflow: hidden;
+	}
+
+	.stat-fill {
+		height: 100%;
+		border-radius: 9999px;
+	}
+
+	.fill-yellow { background: #ffe600; box-shadow: 0 0 8px rgba(255, 230, 0, 0.4); }
+	.fill-cyan { background: #00f5ff; box-shadow: 0 0 8px rgba(0, 245, 255, 0.4); }
+	.fill-pink { background: #ff007f; box-shadow: 0 0 8px rgba(255, 0, 127, 0.4); }
+	.fill-lime { background: #ccff00; box-shadow: 0 0 8px rgba(204, 255, 0, 0.4); }
+
+	.stat-num {
+		font-weight: 700;
+		text-align: right;
+	}
+
+	.neon-cyan { color: #00f5ff; }
+	.neon-pink { color: #ff007f; }
+	.neon-yellow { color: #ffe600; }
+	.neon-lime { color: #ccff00; }
+
+	@media (max-width: 640px) {
+		.inventory-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.stat-row {
+			grid-template-columns: 120px 1fr 36px;
+		}
+	}
+</style>

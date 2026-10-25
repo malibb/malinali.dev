@@ -1,0 +1,379 @@
+---
+import type { InventoryItem } from '../data/inventory';
+
+interface Props {
+	initialItem: InventoryItem;
+	locale?: 'es' | 'en';
+}
+
+const { initialItem } = Astro.props;
+---
+
+<!-- Right Column: Outer Panel hosting the Holo Terminal -->
+<div class="game-panel right-panel">
+	<!-- Holo-Inspector Terminal Window -->
+	<div class="terminal-window" id="terminal-inspector" role="tabpanel">
+		<!-- CRT Scanline overlay effect -->
+		<div class="crt-scanlines" aria-hidden="true"></div>
+
+		<!-- Terminal Top Header -->
+		<div class="terminal-header font-mono">
+			<div class="term-traffic">
+				<span class="term-dot dot-red"></span>
+				<span class="term-dot dot-yellow" id="btn-toggle-deck" title="Toggle Inventory Deck"></span>
+				<span class="term-dot dot-green"></span>
+			</div>
+			<div class="term-title">
+				<span class="term-glow-icon">📡</span>
+				<span>HOLO-INSPECTOR // TERMINAL v2.6.4</span>
+			</div>
+			<span class="term-live-tag neon-cyan">[ ONLINE ]</span>
+		</div>
+
+		<!-- Terminal Body: Hologram Item Inspector -->
+		<div class="terminal-body" id="term-body">
+			<!-- Header with glowing icon frame & titles -->
+			<div class="inspect-header">
+				<div class="inspect-icon-wrap" id="disp-icon-wrap">
+					<span class="inspect-icon" id="disp-icon">{initialItem.icon}</span>
+				</div>
+				<div class="inspect-meta">
+					<div class="inspect-slot font-mono" id="disp-slot">{initialItem.slot}</div>
+					<h3 class="inspect-title" id="disp-title">{initialItem.title}</h3>
+					<div class="inspect-badge-row font-mono">
+						<span class={`inspect-rarity rarity-${initialItem.rarity.toLowerCase()}`} id="disp-rarity">
+							{initialItem.rarityLabel}
+						</span>
+						<span class="inspect-type" id="disp-type">{initialItem.type}</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Single horizontal telemetry chip bar -->
+			<div class="inspect-telemetry font-mono" id="disp-telemetry">
+				{
+					initialItem.stats.map((s) => (
+						<div class="telemetry-chip">
+							<span class="t-name">{s.name}:</span>
+							<strong class="t-val">{s.val}</strong>
+						</div>
+					))
+				}
+			</div>
+
+			<!-- Mission & Technical Log -->
+			<div class="inspect-desc-box">
+				<div class="box-label font-mono">// MISSION & TECHNICAL LOG</div>
+				<p class="inspect-desc" id="disp-desc">{initialItem.description}</p>
+			</div>
+
+			<!-- Item Passive Traits -->
+			<div class="inspect-lore-box">
+				<div class="box-label font-mono neon-yellow">// ITEM PASSIVE TRAITS</div>
+				<p class="inspect-lore font-mono" id="disp-lore">{initialItem.lore}</p>
+			</div>
+
+			<!-- Requisite Inventory Tags -->
+			<div class="inspect-tags-box">
+				<div class="box-label font-mono">// REQUISITE INVENTORY TAGS</div>
+				<div class="inspect-tags font-mono" id="disp-tags">
+					{
+						initialItem.tags.map((tag) => (
+							<span class="item-tag font-mono">{tag}</span>
+						))
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.game-panel {
+		position: relative;
+		border-radius: 1.5rem;
+		background: rgba(12, 16, 26, 0.82);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+		box-sizing: border-box;
+	}
+
+	.right-panel {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* Inner Terminal Window */
+	.terminal-window {
+		position: relative;
+		background: rgba(10, 14, 22, 0.95);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 1.15rem;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+	}
+
+	.crt-scanlines {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+		background-size: 100% 4px;
+		pointer-events: none;
+		z-index: 10;
+		opacity: 0.28;
+	}
+
+	.terminal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.85rem 1.25rem;
+		background: rgba(8, 10, 15, 0.98);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		font-size: 0.8125rem;
+		position: relative;
+		z-index: 2;
+	}
+
+	.term-traffic {
+		display: flex;
+		gap: 0.4rem;
+	}
+
+	.term-dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		cursor: default;
+	}
+
+	.dot-red { background: #ff5f56; }
+	.dot-yellow { background: #ffbd2e; cursor: pointer; }
+	.dot-green { background: #27c93f; }
+
+	.term-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #cbd5e1;
+		font-weight: 700;
+		font-size: 0.8125rem;
+		letter-spacing: 0.03em;
+	}
+
+	.term-live-tag {
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+	}
+
+	.terminal-body {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.2rem;
+		position: relative;
+		z-index: 2;
+	}
+
+	/* Hologram Item View */
+	.inspect-header {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.inspect-icon-wrap {
+		width: 64px;
+		height: 64px;
+		border-radius: 14px;
+		background: rgba(0, 245, 255, 0.04);
+		border: 1.5px solid rgba(0, 245, 255, 0.4);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 2rem;
+		box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+		flex-shrink: 0;
+	}
+
+	@keyframes holoPulse {
+		0% { transform: scale(0.9); opacity: 0.5; }
+		50% { transform: scale(1.06); opacity: 1; }
+		100% { transform: scale(1); opacity: 1; }
+	}
+
+	.inspect-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.inspect-slot {
+		font-size: 0.72rem;
+		color: #64748b;
+		letter-spacing: 0.05em;
+	}
+
+	.inspect-title {
+		font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+		font-weight: 800;
+		color: #ffffff;
+		margin: 0;
+		line-height: 1.25;
+	}
+
+	.inspect-badge-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6rem;
+		margin-top: 0.2rem;
+		font-size: 0.75rem;
+	}
+
+	.inspect-rarity,
+	:global(.inspect-rarity) {
+		font-weight: 700;
+		padding: 0.2rem 0.55rem;
+		border-radius: 0.35rem;
+		font-size: 0.72rem;
+		letter-spacing: 0.05em;
+	}
+
+	:global(.rarity-mythic) {
+		color: #00f5ff;
+		background: rgba(0, 245, 255, 0.14);
+		border: 1px solid rgba(0, 245, 255, 0.3);
+	}
+	:global(.rarity-legendary) {
+		color: #ffe600;
+		background: rgba(255, 230, 0, 0.14);
+		border: 1px solid rgba(255, 230, 0, 0.3);
+	}
+	:global(.rarity-epic) {
+		color: #ff007f;
+		background: rgba(255, 0, 127, 0.14);
+		border: 1px solid rgba(255, 0, 127, 0.3);
+	}
+	:global(.rarity-rare) {
+		color: #00f5ff;
+		background: rgba(0, 245, 255, 0.1);
+		border: 1px solid rgba(0, 245, 255, 0.2);
+	}
+	:global(.rarity-exotic) {
+		color: #ccff00;
+		background: rgba(204, 255, 0, 0.14);
+		border: 1px solid rgba(204, 255, 0, 0.3);
+	}
+
+	.inspect-type {
+		color: #94a3b8;
+		font-size: 0.78rem;
+	}
+
+	/* Telemetry Chips in a single clean row */
+	.inspect-telemetry {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1.25rem;
+		padding: 0.65rem 1rem;
+		border-radius: 8px;
+		background: rgba(14, 18, 28, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		font-size: 0.75rem;
+	}
+
+	.telemetry-chip,
+	:global(.telemetry-chip) {
+		display: flex;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+	}
+
+	.t-name,
+	:global(.t-name) {
+		color: #64748b;
+	}
+
+	.t-val,
+	:global(.t-val) {
+		color: #00f5ff;
+		font-weight: 700;
+	}
+
+	/* Description & Lore */
+	.box-label {
+		font-size: 0.6875rem;
+		color: #64748b;
+		margin-bottom: 0.4rem;
+		letter-spacing: 0.05em;
+	}
+
+	.inspect-desc {
+		font-size: 0.92rem;
+		color: #cbd5e1;
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	.inspect-lore-box {
+		padding: 0.8rem 1rem;
+		border-radius: 8px;
+		background: rgba(255, 230, 0, 0.03);
+		border-left: 3px solid #ffe600;
+	}
+
+	.inspect-lore {
+		font-size: 0.82rem;
+		color: #f1f5f9;
+		margin: 0;
+		line-height: 1.55;
+	}
+
+	/* Tags Cloud */
+	.inspect-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+
+	.item-tag,
+	:global(.item-tag) {
+		font-size: 0.75rem;
+		color: #94a3b8;
+		background: rgba(255, 255, 255, 0.04);
+		padding: 0.25rem 0.65rem;
+		border-radius: 6px;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.neon-cyan {
+		color: #00f5ff;
+		text-shadow: 0 0 8px rgba(0, 245, 255, 0.4);
+	}
+	.neon-yellow {
+		color: #ffe600;
+	}
+
+	@media (max-width: 640px) {
+		.right-panel {
+			padding: 1rem;
+		}
+
+		.terminal-body {
+			padding: 1rem;
+		}
+
+		.inspect-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.75rem;
+		}
+	}
+</style>

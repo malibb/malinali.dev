@@ -1,0 +1,174 @@
+---
+interface Props {
+	locale?: 'es' | 'en';
+}
+
+const { locale = 'es' } = Astro.props;
+---
+
+<!-- Top CLI Command Bar & Macros -->
+<div class="hud-cli-topbar font-mono">
+	<div class="cli-input-row">
+		<div class="cli-prompt-group">
+			<span class="cli-prompt neon-cyan">malibb@deck:~$</span>
+			<input
+				type="text"
+				id="cli-input"
+				placeholder={
+					locale === 'es'
+						? "escribe 'help', 'inspect scopely', 'stats'..."
+						: "type 'help', 'inspect scopely', 'stats'..."
+				}
+				autocomplete="off"
+				spellcheck="false"
+			/>
+		</div>
+		<button type="button" class="cli-exec-btn font-mono" id="cli-submit">EXEC</button>
+	</div>
+
+	<div class="cli-quick-row">
+		<span class="quick-label">QUICK MACROS:</span>
+		<div class="macro-list">
+			<button type="button" class="macro-chip" data-cmd="inspect scopely">scopely</button>
+			<button type="button" class="macro-chip" data-cmd="inspect lootmint">lootmint</button>
+			<button type="button" class="macro-chip" data-cmd="inspect sabbatical">sabbatical</button>
+			<button type="button" class="macro-chip" data-cmd="inspect devf">devf</button>
+			<button type="button" class="macro-chip" data-cmd="inspect community">community</button>
+			<button type="button" class="macro-chip" data-cmd="help">help</button>
+		</div>
+	</div>
+
+	<div class="cli-feedback font-mono" id="cli-feedback"></div>
+</div>
+
+<style>
+	.hud-cli-topbar {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+		padding: 0.25rem 0.5rem;
+		box-sizing: border-box;
+	}
+
+	.cli-input-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		width: 100%;
+	}
+
+	.cli-prompt-group {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		flex-grow: 1;
+	}
+
+	.cli-prompt {
+		font-size: 0.875rem;
+		font-weight: 700;
+		white-space: nowrap;
+		letter-spacing: 0.02em;
+	}
+
+	#cli-input {
+		flex-grow: 1;
+		background: transparent;
+		border: none;
+		outline: none;
+		color: #ffffff;
+		font-family: var(--font-mono);
+		font-size: 0.875rem;
+		padding: 0.25rem 0;
+	}
+
+	#cli-input::placeholder {
+		color: #64748b;
+	}
+
+	.cli-exec-btn {
+		background: rgba(0, 245, 255, 0.08);
+		border: 1px solid rgba(0, 245, 255, 0.45);
+		color: #00f5ff;
+		padding: 0.3rem 0.95rem;
+		border-radius: 5px;
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.cli-exec-btn:hover {
+		background: rgba(0, 245, 255, 0.22);
+		border-color: #00f5ff;
+		box-shadow: 0 0 12px rgba(0, 245, 255, 0.4);
+	}
+
+	.cli-quick-row {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		font-size: 0.6875rem;
+	}
+
+	.quick-label {
+		color: #64748b;
+		letter-spacing: 0.05em;
+	}
+
+	.macro-list {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.macro-chip {
+		background: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: #94a3b8;
+		padding: 0.18rem 0.55rem;
+		border-radius: 4px;
+		font-size: 0.6875rem;
+		font-family: inherit;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.macro-chip:hover {
+		color: #00f5ff;
+		border-color: rgba(0, 245, 255, 0.5);
+		background: rgba(0, 245, 255, 0.08);
+	}
+
+	.cli-feedback {
+		font-size: 0.75rem;
+		min-height: 1.1rem;
+		margin-top: 0.1rem;
+	}
+
+	:global(.cli-feedback.is-success) { color: #00ff88; }
+	:global(.cli-feedback.is-error) { color: #ff0055; }
+	:global(.cli-feedback.is-info) { color: #00f5ff; }
+
+	.neon-cyan {
+		color: #00f5ff;
+		text-shadow: 0 0 8px rgba(0, 245, 255, 0.4);
+	}
+
+	@media (max-width: 640px) {
+		.cli-input-row {
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+
+		#cli-input {
+			min-width: 140px;
+		}
+	}
+</style>

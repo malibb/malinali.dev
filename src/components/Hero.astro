@@ -1,38 +1,151 @@
 ---
 import { useTranslations } from '../i18n/utils';
+import SocialLinks from './SocialLinks.astro';
 
 const currentLocale = (Astro.currentLocale || 'es') as 'es' | 'en';
 const t = useTranslations(currentLocale);
 ---
 
-<main class="hero">
-	<div class="hero-interactive">
+<aside class="corner-dock" id="corner-dock" aria-label="Navegación de cabecera">
+	<a href="#" class="corner-pill" id="corner-pill" aria-label="Volver arriba">
+		<span class="corner-name">Malinali Becerril</span>
+		<span class="corner-divider" aria-hidden="true">/</span>
+		<span class="corner-role">{t('hero.role')}</span>
+	</a>
+</aside>
+
+<section class="hero-section" id="hero-section">
+	<div class="hero-interactive" id="hero-interactive">
 		<h1 class="hero-title">
 			Malinali Becerril
 		</h1>
 		<p class="hero-role">
 			{t('hero.role')}
 		</p>
+		<div class="hero-social">
+			<SocialLinks />
+		</div>
 	</div>
-</main>
+</section>
+
+<script>
+	function initHeroScrollDock() {
+		const cornerDock = document.getElementById('corner-dock');
+		const heroInteractive = document.getElementById('hero-interactive');
+		const pill = document.getElementById('corner-pill');
+
+		function handleScroll() {
+			const shouldDock = window.scrollY > 40;
+			if (shouldDock) {
+				cornerDock?.classList.add('is-visible');
+				heroInteractive?.classList.add('is-dimmed');
+			} else {
+				cornerDock?.classList.remove('is-visible');
+				heroInteractive?.classList.remove('is-dimmed');
+			}
+		}
+
+		window.addEventListener('scroll', handleScroll, { passive: true });
+		handleScroll();
+
+		pill?.addEventListener('click', (e) => {
+			e.preventDefault();
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		});
+
+		document.addEventListener(
+			'astro:before-swap',
+			() => {
+				window.removeEventListener('scroll', handleScroll);
+			},
+			{ once: true }
+		);
+	}
+
+	initHeroScrollDock();
+	document.addEventListener('astro:after-swap', initHeroScrollDock);
+</script>
 
 <style>
-	.hero {
+	/* Corner Dock (Top-left fixed badge) */
+	.corner-dock {
+		position: fixed;
+		top: 1.25rem;
+		left: 1.5rem;
+		z-index: 70;
+		opacity: 0;
+		transform: translateY(-16px) scale(0.92);
+		pointer-events: none;
+		transition:
+			opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+		will-change: opacity, transform;
+	}
+
+	.corner-dock.is-visible {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		pointer-events: auto;
+	}
+
+	.corner-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.45rem 1.1rem;
+		border-radius: 9999px;
+		background: rgba(14, 16, 24, 0.85);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 245, 255, 0.1);
+		color: #ffffff;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.25s ease;
+	}
+
+	.corner-pill:hover {
+		border-color: rgba(0, 245, 255, 0.5);
+		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 245, 255, 0.25);
+		transform: translateY(-1px);
+	}
+
+	.corner-name {
+		font-weight: 700;
+		font-size: 0.95rem;
+		letter-spacing: -0.01em;
+	}
+
+	.corner-divider {
+		color: rgba(255, 255, 255, 0.3);
+		font-family: var(--font-mono);
+	}
+
+	.corner-role {
+		font-size: 0.8rem;
+		color: #00f5ff;
+		font-family: var(--font-mono);
+	}
+
+	/* Hero Section */
+	.hero-section {
 		max-width: 900px;
 		margin: 0 auto;
-		padding: 4rem 2rem;
+		padding: 2rem 1.5rem 0.5rem;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		text-align: center;
-		overflow: hidden;
+		position: relative;
+		z-index: 2;
 	}
 
 	.hero-interactive {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 1.5rem 2.5rem;
+		padding: 0.75rem 2rem;
 		border-radius: 2rem;
 		background: radial-gradient(
 			ellipse at center,
@@ -42,21 +155,28 @@ const t = useTranslations(currentLocale);
 		);
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
-		transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-		will-change: transform;
+		transition:
+			opacity 0.35s ease,
+			transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+		will-change: transform, opacity;
 		cursor: default;
 	}
 
-	.hero-interactive:hover {
-		transform: scale(1.06);
+	.hero-interactive.is-dimmed {
+		opacity: 0.12;
+		transform: scale(0.96) translateY(-10px);
+	}
+
+	.hero-interactive:hover:not(.is-dimmed) {
+		transform: scale(1.05);
 	}
 
 	.hero-title {
 		font-size: clamp(2.5rem, 6.5vw, 5rem);
-		margin: 1.25rem 0 0.5rem;
+		margin: 0.5rem 0 0.35rem;
 		line-height: 1.05;
 		font-weight: 900;
-		color: #FFFFFF;
+		color: #ffffff;
 		text-shadow:
 			0 2px 12px rgba(0, 0, 0, 0.95),
 			0 0 25px rgba(0, 0, 0, 0.9),
@@ -69,9 +189,9 @@ const t = useTranslations(currentLocale);
 
 	.hero-role {
 		font-size: 1.25rem;
-		margin: 0.75rem 0;
+		margin: 0.5rem 0 0;
 		font-weight: 500;
-		color: #E2E8F0;
+		color: #e2e8f0;
 		text-shadow:
 			0 2px 8px rgba(0, 0, 0, 0.95),
 			0 0 20px rgba(0, 0, 0, 0.9);
@@ -81,6 +201,51 @@ const t = useTranslations(currentLocale);
 		will-change: transform, opacity;
 	}
 
+	.hero-social {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		margin-top: 0.25rem;
+	}
+
+	/* Responsive rules for mobile */
+	@media (max-width: 768px) {
+		.corner-dock {
+			top: 0.85rem;
+			left: 1rem;
+		}
+
+		.corner-pill {
+			padding: 0.4rem 0.8rem;
+		}
+
+		.corner-name {
+			font-size: 0.875rem;
+		}
+
+		.corner-divider,
+		.corner-role {
+			display: none;
+		}
+
+		.hero-section {
+			padding: 3.5rem 1rem 2rem;
+		}
+
+		.hero-interactive {
+			padding: 1.25rem 1.5rem;
+		}
+
+		.hero-title {
+			font-size: clamp(2rem, 8.5vw, 3.2rem);
+		}
+
+		.hero-role {
+			font-size: 1.05rem;
+		}
+	}
+
+	/* Cinematic Collision Animation */
 	@keyframes titleCollideAndRise {
 		0% {
 			opacity: 0;
@@ -89,22 +254,18 @@ const t = useTranslations(currentLocale);
 		15% {
 			opacity: 1;
 		}
-		/* 1. Llega al centro sobre la misma línea */
 		38% {
 			transform: translate(0, 30px);
 		}
-		/* 2. PAUSA: se queda detenido cara a cara en la misma línea */
 		58% {
 			transform: translate(0, 30px);
 		}
-		/* 3. REBOTE: sale disparado hacia ARRIBA a su posición */
 		74% {
 			transform: translate(-12px, -18px) rotate(-1.5deg);
 		}
 		86% {
 			transform: translate(3px, 4px) rotate(0.4deg);
 		}
-		/* 4. Posición final de reposo arriba */
 		100% {
 			opacity: 1;
 			transform: translate(0, 0) rotate(0deg);
@@ -119,22 +280,18 @@ const t = useTranslations(currentLocale);
 		15% {
 			opacity: 1;
 		}
-		/* 1. Llega al centro sobre la misma línea */
 		38% {
 			transform: translate(0, -30px);
 		}
-		/* 2. PAUSA: se queda detenido cara a cara en la misma línea */
 		58% {
 			transform: translate(0, -30px);
 		}
-		/* 3. REBOTE: es empujado hacia ABAJO a su posición */
 		74% {
 			transform: translate(12px, 18px) rotate(1.5deg);
 		}
 		86% {
 			transform: translate(-3px, -4px) rotate(-0.4deg);
 		}
-		/* 4. Posición final de reposo abajo */
 		100% {
 			opacity: 1;
 			transform: translate(0, 0) rotate(0deg);
