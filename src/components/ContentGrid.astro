@@ -2,6 +2,7 @@
 import { getInventory } from '../data/inventory';
 
 const currentLocale = (Astro.currentLocale || 'es') as 'es' | 'en';
+const locale = currentLocale;
 const inventory = getInventory(currentLocale);
 ---
 
@@ -28,16 +29,17 @@ const inventory = getInventory(currentLocale);
 		<div class="term-macros-bar font-mono">
 			<span class="macro-label">MACROS:</span>
 			<div class="macro-chips-wrap">
-				<button type="button" class="term-macro" data-cmd="help">help</button>
-				<button type="button" class="term-macro" data-cmd="scopely">scopely</button>
-				<button type="button" class="term-macro" data-cmd="lootmint">lootmint</button>
-				<button type="button" class="term-macro" data-cmd="sabbatical">sabbatical</button>
-				<button type="button" class="term-macro" data-cmd="devf">devf</button>
-				<button type="button" class="term-macro" data-cmd="teaching">teaching</button>
-				<button type="button" class="term-macro" data-cmd="community">community</button>
-				<button type="button" class="term-macro" data-cmd="stack">stack</button>
-				<button type="button" class="term-macro" data-cmd="stats">stats</button>
-				<button type="button" class="term-macro" data-cmd="clear">clear</button>
+				<button type="button" class="term-macro" data-cmd="help" title={locale === 'es' ? 'Mostrar guía de comandos' : 'Show command guide'}>help</button>
+				<button type="button" class="term-macro" data-cmd="calendar" title={locale === 'es' ? '📅 Agendar mentoría 1:1 en Google Calendar' : '📅 Book 1:1 mentorship session'}>mentorías</button>
+				<button type="button" class="term-macro" data-cmd="scopely" title={locale === 'es' ? 'Inspeccionar experiencia en Scopely' : 'Inspect Scopely experience'}>scopely</button>
+				<button type="button" class="term-macro" data-cmd="lootmint" title={locale === 'es' ? 'Inspeccionar proyecto Lootmint Game-Fi' : 'Inspect Lootmint Game-Fi project'}>lootmint</button>
+				<button type="button" class="term-macro" data-cmd="sabbatical" title={locale === 'es' ? 'Inspeccionar Pausa Intencional 2026' : 'Inspect 2026 Sabbatical'}>sabbatical</button>
+				<button type="button" class="term-macro" data-cmd="devf" title={locale === 'es' ? 'Inspeccionar trayectoria en DEV.F' : 'Inspect DEV.F trajectory'}>devf</button>
+				<button type="button" class="term-macro" data-cmd="teaching" title={locale === 'es' ? 'Inspeccionar labor docente y liderazgo' : 'Inspect teaching & leadership'}>teaching</button>
+				<button type="button" class="term-macro" data-cmd="community" title={locale === 'es' ? 'Inspeccionar rol en comunidades tech' : 'Inspect tech community roles'}>community</button>
+				<button type="button" class="term-macro" data-cmd="stack" title={locale === 'es' ? 'Ver arsenal técnico y stack' : 'View tech stack'}>stack</button>
+				<button type="button" class="term-macro" data-cmd="stats" title={locale === 'es' ? 'Ver atributos del sistema' : 'View system attributes'}>stats</button>
+				<button type="button" class="term-macro" data-cmd="clear" title={locale === 'es' ? 'Limpiar pantalla de la terminal' : 'Clear terminal screen'}>clear</button>
 			</div>
 		</div>
 
@@ -141,6 +143,7 @@ const inventory = getInventory(currentLocale);
 					<div class="help-box">
 						<div class="help-title neon-yellow">${locale === 'es' ? '// COMANDOS DISPONIBLES:' : '// AVAILABLE COMMANDS:'}</div>
 						<div class="help-grid">
+							<div><strong class="neon-cyan">calendar</strong> - ${locale === 'es' ? 'Agendar sesión de mentoría estratégica 1:1 en Google Calendar' : 'Book a 1:1 strategic mentorship session on Google Calendar'}</div>
 							<div><strong class="neon-cyan">scopely</strong> - ${locale === 'es' ? 'Chat Discord Java (+500K DAU) & servidores Unity C#' : 'Discord chat in Java (+500K DAU) & Unity C# game servers'}</div>
 							<div><strong class="neon-cyan">lootmint</strong> - ${locale === 'es' ? 'MVP Game-Fi, economía shards & AWS (NestJS, Next.js)' : 'Game-Fi MVP, shard economy & AWS (NestJS, Next.js)'}</div>
 							<div><strong class="neon-cyan">sabbatical</strong> - ${locale === 'es' ? 'Pausa Intencional 2026, Mentoría Estratégica & GenAI' : '2026 Sabbatical Oasis, Strategic Mentorship & GenAI'}</div>
@@ -154,7 +157,33 @@ const inventory = getInventory(currentLocale);
 						</div>
 					</div>
 				`;
+			} else if (query === 'calendar' || query === 'mentorias' || query === 'mentorías' || query === 'booking' || query === 'mentoria') {
+				outputEl.innerHTML = `
+					<div class="item-log-card" style="border-color: #00f5ff; background: rgba(0, 245, 255, 0.04);">
+						<div class="card-head">
+							<span class="c-icon">📅</span>
+							<div class="c-meta">
+								<div class="c-title-row">
+									<h3 class="c-title">${locale === 'es' ? 'Calendario de Mentorías 1:1' : '1:1 Mentorship Calendar'}</h3>
+									<span class="c-rarity rarity-mythic">${locale === 'es' ? 'SESIONES ESTRATÉGICAS' : 'STRATEGIC SESSIONS'}</span>
+								</div>
+								<div class="c-sub">Google Calendar Appointment Scheduling</div>
+							</div>
+						</div>
+						<p class="c-desc">
+							${locale === 'es'
+								? 'Agenda una sesión 1:1 con Malinali sobre Ingeniería de Software, Microservicios, Arquitectura Backend, Liderazgo Técnico o Mentoría de Carrera.'
+								: 'Schedule a 1:1 session with Malinali on Software Engineering, Microservices, Backend Architecture, Tech Leadership or Career Mentorship.'}
+						</p>
+						<div class="c-tags" style="margin-top: 0.5rem;">
+							<a href="https://calendar.app.google/494u6qZ5PayiiCsj6" target="_blank" rel="noopener noreferrer" style="color: #00f5ff; text-decoration: none; font-weight: 700; background: rgba(0, 245, 255, 0.12); border: 1px solid rgba(0, 245, 255, 0.4); padding: 0.4rem 0.95rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
+								<span>${locale === 'es' ? '📅 Abrir Calendario de Mentorías en Google Calendar →' : '📅 Open Mentorship Google Calendar →'}</span>
+							</a>
+						</div>
+					</div>
+				`;
 			} else if (query === 'stats') {
+
 				outputEl.innerHTML = `
 					<div class="stats-box">
 						<div class="stats-head neon-yellow">${locale === 'es' ? '// RATINGS DE ATRIBUTOS DEL SISTEMA:' : '// SYSTEM ATTRIBUTE RATINGS:'}</div>

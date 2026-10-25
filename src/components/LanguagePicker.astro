@@ -26,6 +26,7 @@ function getLocalizedPath(targetLocale: string) {
 					class={isActive ? 'active' : ''}
 					aria-current={isActive ? 'page' : undefined}
 					data-locale={locale}
+					title={locale === 'es' ? 'Cambiar a Español' : 'Switch to English'}
 				>
 					{locale.toUpperCase()}
 				</a>
