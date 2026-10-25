@@ -536,53 +536,6 @@ const inventory = getInventory(currentLocale);
 		line-height: 1.5;
 	}
 
-	/* Stats Output */
-	:global(.stats-box) {
-		background: rgba(14, 18, 28, 0.6);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 8px;
-		padding: 1rem 1.25rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.65rem;
-	}
-
-	:global(.stats-head) {
-		font-size: 0.75rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		margin-bottom: 0.25rem;
-	}
-
-	:global(.stat-line) {
-		display: grid;
-		grid-template-columns: 220px 1fr 45px;
-		align-items: center;
-		gap: 0.85rem;
-		font-size: 0.75rem;
-	}
-
-	:global(.s-name) {
-		color: #94a3b8;
-	}
-
-	:global(.s-bar) {
-		height: 8px;
-		background: rgba(255, 255, 255, 0.08);
-		border-radius: 9999px;
-		overflow: hidden;
-	}
-
-	:global(.s-fill) {
-		height: 100%;
-		border-radius: 9999px;
-	}
-
-	:global(.s-val) {
-		font-weight: 700;
-		text-align: right;
-	}
-
 	/* Card Output */
 	:global(.item-log-card) {
 		background: rgba(14, 18, 28, 0.7);
@@ -759,10 +712,6 @@ const inventory = getInventory(currentLocale);
 			min-height: 280px;
 			max-height: 440px;
 			padding: 1rem;
-		}
-
-		:global(.stat-line) {
-			grid-template-columns: 140px 1fr 38px;
 		}
 	}
 </style>
