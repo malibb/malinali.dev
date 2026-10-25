@@ -1,11 +1,14 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import LangtonFluidCanvas from '../components/LangtonFluidCanvas.astro';
 import '../styles/global.css';
 
 interface Props {
 	title?: string;
 	description?: string;
 	lang?: string;
+	antCount?: number;
+	antColors?: string[];
 }
 
 const currentLocale = Astro.currentLocale || 'es';
@@ -13,6 +16,8 @@ const {
 	title = 'Malinali Becerril Bernal · Software Engineer & Tech Lead',
 	description = 'Portfolio y CV de Malinali Becerril Bernal — Software Engineer, Full Stack & Tech Lead.',
 	lang = currentLocale,
+	antCount = 2,
+	antColors = ['#00F5FF', '#FF007F'],
 } = Astro.props;
 ---
 
@@ -26,23 +31,6 @@ const {
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
-
-		<!-- Font preloads for zero FOUT / layout shift -->
-		<link
-			rel="preload"
-			href="/fonts/MangoGrotesque-Black.woff2"
-			as="font"
-			type="font/woff2"
-			crossorigin
-		/>
-		<link
-			rel="preload"
-			href="/fonts/MangoGrotesque-Regular.woff2"
-			as="font"
-			type="font/woff2"
-			crossorigin
-		/>
-
 		<ClientRouter />
 
 		<!-- Language Auto-Detection (Client-side) -->
@@ -75,6 +63,7 @@ const {
 		</script>
 	</head>
 	<body>
+		<LangtonFluidCanvas count={antCount} colors={antColors} />
 		<slot />
 	</body>
 </html>

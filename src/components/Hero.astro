@@ -8,7 +8,7 @@ const t = useTranslations(currentLocale);
 <main class="hero">
 	<div class="hero-interactive">
 		<h1 class="hero-title">
-			Malinali Becerril Bernal
+			Malinali Becerril
 		</h1>
 		<p class="hero-role">
 			{t('hero.role')}
@@ -32,13 +32,23 @@ const t = useTranslations(currentLocale);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		padding: 1.5rem 2.5rem;
+		border-radius: 2rem;
+		background: radial-gradient(
+			ellipse at center,
+			rgba(8, 9, 13, 0.72) 0%,
+			rgba(8, 9, 13, 0.35) 60%,
+			transparent 90%
+		);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
 		transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 		will-change: transform;
 		cursor: default;
 	}
 
 	.hero-interactive:hover {
-		transform: scale(1.07);
+		transform: scale(1.06);
 	}
 
 	.hero-title {
@@ -46,6 +56,11 @@ const t = useTranslations(currentLocale);
 		margin: 1.25rem 0 0.5rem;
 		line-height: 1.05;
 		font-weight: 900;
+		color: #FFFFFF;
+		text-shadow:
+			0 2px 12px rgba(0, 0, 0, 0.95),
+			0 0 25px rgba(0, 0, 0, 0.9),
+			0 0 50px rgba(8, 9, 13, 0.95);
 		opacity: 0;
 		transform: translate(-100vw, 30px);
 		animation: titleCollideAndRise 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -56,6 +71,10 @@ const t = useTranslations(currentLocale);
 		font-size: 1.25rem;
 		margin: 0.75rem 0;
 		font-weight: 500;
+		color: #E2E8F0;
+		text-shadow:
+			0 2px 8px rgba(0, 0, 0, 0.95),
+			0 0 20px rgba(0, 0, 0, 0.9);
 		opacity: 0;
 		transform: translate(100vw, -30px);
 		animation: subtitleCollideAndDrop 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;

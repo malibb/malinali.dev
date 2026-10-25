@@ -1,0 +1,517 @@
+---
+interface Props {
+	count?: number;
+	colors?: string[];
+	cellSize?: number;
+	speed?: number;
+	maxAnts?: number;
+}
+
+const {
+	count = 2,
+	colors = ['#00F5FF', '#FF007F'],
+	cellSize = 32,
+	speed = 3,
+	maxAnts = 10,
+} = Astro.props;
+---
+
+<div
+	class="langton-canvas-wrap"
+	data-count={count}
+	data-colors={JSON.stringify(colors)}
+	data-cell-size={cellSize}
+	data-speed={speed}
+	data-max-ants={maxAnts}
+	aria-hidden="true"
+>
+	<canvas id="langton-fluid-canvas"></canvas>
+</div>
+
+<script>
+	function initLangtonFluid() {
+		const wrap = document.querySelector('.langton-canvas-wrap') as HTMLElement;
+		const canvas = document.getElementById('langton-fluid-canvas') as HTMLCanvasElement;
+		if (!wrap || !canvas) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		const count = Number(wrap.dataset.count) || 2;
+		const colors: string[] = JSON.parse(wrap.dataset.colors || '["#00F5FF", "#FF007F"]');
+		const cellSize = Number(wrap.dataset.cellSize) || 32;
+		const speed = Number(wrap.dataset.speed) || 6;
+		const maxAnts = Number(wrap.dataset.maxAnts) || 10;
+
+		let width = (canvas.width = window.innerWidth);
+		let height = (canvas.height = window.innerHeight);
+		let cols = Math.floor(width / cellSize);
+		let rows = Math.floor(height / cellSize);
+
+		let grid = new Uint8Array(cols * rows);
+
+		interface Ant {
+			x: number;
+			y: number;
+			dir: number; // 0: N, 1: E, 2: S, 3: W
+			color: string;
+			breedCooldown: number;
+		}
+
+		interface BirthEffect {
+			x: number;
+			y: number;
+			color: string;
+			radius: number;
+			maxRadius: number;
+			alpha: number;
+		}
+
+		const birthEffects: BirthEffect[] = [];
+
+		function hexToRgb(hex: string): [number, number, number] {
+			const c = hex.replace('#', '');
+			const num = parseInt(c.length === 3 ? c.split('').map((x) => x + x).join('') : c, 16);
+			return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+		}
+
+		// HSL conversion helpers for vivid neon genetics
+		function hexToHsl(hex: string): [number, number, number] {
+			const [rVal, gVal, bVal] = hexToRgb(hex);
+			const r = rVal / 255;
+			const g = gVal / 255;
+			const b = bVal / 255;
+
+			const max = Math.max(r, g, b);
+			const min = Math.min(r, g, b);
+			let h = 0;
+			let s = 0;
+			const l = (max + min) / 2;
+
+			if (max !== min) {
+				const d = max - min;
+				s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+				switch (max) {
+					case r:
+						h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+						break;
+					case g:
+						h = ((b - r) / d + 2) / 6;
+						break;
+					case b:
+						h = ((r - g) / d + 4) / 6;
+						break;
+				}
+			}
+			return [h * 360, s, l];
+		}
+
+		function hslToHex(h: number, s: number, l: number): string {
+			h = ((h % 360) + 360) % 360;
+			const c = (1 - Math.abs(2 * l - 1)) * s;
+			const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+			const m = l - c / 2;
+			let r = 0;
+			let g = 0;
+			let b = 0;
+
+			if (0 <= h && h < 60) {
+				r = c;
+				g = x;
+			} else if (60 <= h && h < 120) {
+				r = x;
+				g = c;
+			} else if (120 <= h && h < 180) {
+				g = c;
+				b = x;
+			} else if (180 <= h && h < 240) {
+				g = x;
+				b = c;
+			} else if (240 <= h && h < 300) {
+				r = x;
+				b = c;
+			} else if (300 <= h && h < 360) {
+				r = c;
+				b = x;
+			}
+
+			const toHex = (v: number) =>
+				Math.round((v + m) * 255)
+					.toString(16)
+					.padStart(2, '0');
+			return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+		}
+
+		// Genetic crossover: computes vivid neon midpoint with slight mutation
+		function blendColors(hexA: string, hexB: string): string {
+			const [h1] = hexToHsl(hexA);
+			const [h2] = hexToHsl(hexB);
+
+			const diff = (h2 - h1 + 360) % 360;
+			let avgH = (diff > 180 ? h1 + (diff - 360) / 2 : h1 + diff / 2) % 360;
+			if (avgH < 0) avgH += 360;
+
+			// Add subtle genetic mutation (+/- 12 degrees)
+			avgH = (avgH + (Math.random() * 24 - 12) + 360) % 360;
+
+			return hslToHex(avgH, 1.0, 0.55);
+		}
+
+		function createAnts(total: number, palette: string[]): Ant[] {
+			if (total === 2) {
+				const midY = Math.floor(rows * 0.5);
+				return [
+					{
+						x: Math.floor(cols * 0.46),
+						y: midY,
+						dir: 0, // Starts North -> first step turns East towards center
+						color: palette[0] || '#00F5FF',
+						breedCooldown: 0,
+					},
+					{
+						x: Math.floor(cols * 0.54),
+						y: midY,
+						dir: 2, // Starts South -> first step turns West towards center
+						color: palette[1] || '#FF007F',
+						breedCooldown: 0,
+					},
+				];
+			}
+
+			return Array.from({ length: total }, (_, i) => {
+				const angle = (i / total) * Math.PI * 2;
+				const radCols = Math.max(3, Math.floor(cols * 0.08));
+				const radRows = Math.max(3, Math.floor(rows * 0.08));
+				const ax = Math.floor(cols * 0.5 + Math.cos(angle) * radCols);
+				const ay = Math.floor(rows * 0.5 + Math.sin(angle) * radRows);
+				const inwardAngle = angle + Math.PI;
+				const dir = Math.round(((inwardAngle + Math.PI / 2) / (Math.PI / 2)) + 4) % 4;
+
+				return {
+					x: (ax + cols) % cols,
+					y: (ay + rows) % rows,
+					dir,
+					color: palette[i % palette.length],
+					breedCooldown: 0,
+				};
+			});
+		}
+
+		let ants = createAnts(count, colors);
+		let mouse = { x: -1000, y: -1000, active: false };
+		let mouseTimer: number;
+
+		function resetCanvas() {
+			width = canvas.width = window.innerWidth;
+			height = canvas.height = window.innerHeight;
+			cols = Math.floor(width / cellSize);
+			rows = Math.floor(height / cellSize);
+			grid = new Uint8Array(cols * rows);
+			birthEffects.length = 0;
+			ants = createAnts(count, colors);
+
+			ctx!.fillStyle = '#08090D';
+			ctx!.fillRect(0, 0, width, height);
+		}
+
+		window.addEventListener('resize', resetCanvas);
+
+		window.addEventListener('mousemove', (e) => {
+			mouse.x = Math.floor(e.clientX / cellSize);
+			mouse.y = Math.floor(e.clientY / cellSize);
+			mouse.active = true;
+			clearTimeout(mouseTimer);
+			mouseTimer = window.setTimeout(() => (mouse.active = false), 250);
+		});
+
+		window.addEventListener('click', (e) => {
+			if ((e.target as HTMLElement)?.closest('a, button')) return;
+
+			const cx = Math.floor(e.clientX / cellSize);
+			const cy = Math.floor(e.clientY / cellSize);
+
+			// Interactive birth on background click!
+			if (ants.length < maxAnts) {
+				const parentA = ants[Math.floor(Math.random() * ants.length)];
+				const randomColor = colors[Math.floor(Math.random() * colors.length)];
+				const babyColor = blendColors(parentA ? parentA.color : colors[0], randomColor);
+
+				ants.push({
+					x: (cx + cols) % cols,
+					y: (cy + rows) % rows,
+					dir: Math.floor(Math.random() * 4),
+					color: babyColor,
+					breedCooldown: 60,
+				});
+
+				birthEffects.push({
+					x: cx * cellSize + cellSize / 2,
+					y: cy * cellSize + cellSize / 2,
+					color: babyColor,
+					radius: cellSize * 0.5,
+					maxRadius: cellSize * 3.5,
+					alpha: 1.0,
+				});
+			}
+
+			// Fluid disturbance
+			for (let dx = -3; dx <= 3; dx++) {
+				for (let dy = -3; dy <= 3; dy++) {
+					if (dx * dx + dy * dy <= 9) {
+						const gx = (cx + dx + cols) % cols;
+						const gy = (cy + dy + rows) % rows;
+						grid[gy * cols + gx] = Math.random() > 0.5 ? 1 : 0;
+					}
+				}
+			}
+		});
+
+		ctx.fillStyle = '#08090D';
+		ctx.fillRect(0, 0, width, height);
+
+		function checkReproduction() {
+			if (ants.length >= maxAnts) return;
+
+			for (let i = 0; i < ants.length; i++) {
+				for (let j = i + 1; j < ants.length; j++) {
+					if (ants.length >= maxAnts) break;
+
+					const antA = ants[i];
+					const antB = ants[j];
+
+					// Wrapped torus distance
+					const rawDx = Math.abs(antA.x - antB.x);
+					const rawDy = Math.abs(antA.y - antB.y);
+					const dx = Math.min(rawDx, cols - rawDx);
+					const dy = Math.min(rawDy, rows - rawDy);
+					const dist = Math.hypot(dx, dy);
+
+					// 1. Social pheromone attraction: when nearby, steer gently towards each other
+					if (dist > 2.2 && dist <= 8 && antA.breedCooldown <= 0 && antB.breedCooldown <= 0) {
+						if (Math.random() < 0.25) {
+							const stepX = (antB.x - antA.x + cols) % cols;
+							const stepY = (antB.y - antA.y + rows) % rows;
+							const effX = stepX > cols / 2 ? stepX - cols : stepX;
+							const effY = stepY > rows / 2 ? stepY - rows : stepY;
+
+							if (Math.abs(effX) > Math.abs(effY)) {
+								antA.dir = effX > 0 ? 1 : 3;
+							} else {
+								antA.dir = effY > 0 ? 2 : 0;
+							}
+						}
+					}
+
+					// 2. Physical collision & genetic reproduction!
+					if (dist <= 2.2 && antA.breedCooldown <= 0 && antB.breedCooldown <= 0) {
+						const babyColor = blendColors(antA.color, antB.color);
+
+						const birthX = (Math.round((antA.x + antB.x) / 2) + cols) % cols;
+						const birthY = (Math.round((antA.y + antB.y) / 2) + rows) % rows;
+
+						// Spawn baby ant
+						ants.push({
+							x: birthX,
+							y: birthY,
+							dir: (antA.dir + 1) % 4,
+							color: babyColor,
+							breedCooldown: 180,
+						});
+
+						// Parents bounce away in opposite directions with cooldown
+						antA.dir = (antA.dir + 2) % 4;
+						antB.dir = (antB.dir + 2) % 4;
+						antA.breedCooldown = 140;
+						antB.breedCooldown = 140;
+
+						// Visual birth shockwave
+						birthEffects.push({
+							x: birthX * cellSize + cellSize / 2,
+							y: birthY * cellSize + cellSize / 2,
+							color: babyColor,
+							radius: cellSize * 0.5,
+							maxRadius: cellSize * 3.5,
+							alpha: 1.0,
+						});
+
+						break;
+					}
+				}
+			}
+		}
+
+		function stepAnt(ant: Ant) {
+			if (ant.breedCooldown > 0) {
+				ant.breedCooldown--;
+			}
+
+			const idx = ant.y * cols + ant.x;
+			const state = grid[idx];
+
+			if (state === 0) {
+				ant.dir = (ant.dir + 1) % 4; // Turn right
+				grid[idx] = 1;
+				const [r, g, b] = hexToRgb(ant.color);
+				ctx!.fillStyle = `rgba(${r}, ${g}, ${b}, 0.45)`;
+				ctx!.shadowColor = ant.color;
+				ctx!.shadowBlur = 6;
+				ctx!.fillRect(ant.x * cellSize, ant.y * cellSize, cellSize - 1, cellSize - 1);
+			} else {
+				ant.dir = (ant.dir + 3) % 4; // Turn left
+				grid[idx] = 0;
+				ctx!.fillStyle = 'rgba(14, 16, 24, 0.7)';
+				ctx!.shadowBlur = 0;
+				ctx!.fillRect(ant.x * cellSize, ant.y * cellSize, cellSize - 1, cellSize - 1);
+			}
+
+			// Mouse fluid disturbance
+			if (mouse.active) {
+				const mdx = ant.x - mouse.x;
+				const mdy = ant.y - mouse.y;
+				if (mdx * mdx + mdy * mdy < 36) {
+					ant.dir = Math.floor(Math.random() * 4);
+				}
+			}
+
+			// Move forward
+			if (ant.dir === 0) ant.y--;
+			else if (ant.dir === 1) ant.x++;
+			else if (ant.dir === 2) ant.y++;
+			else if (ant.dir === 3) ant.x--;
+
+			// Torus wrap-around
+			if (ant.x < 0) ant.x = cols - 1;
+			if (ant.x >= cols) ant.x = 0;
+			if (ant.y < 0) ant.y = rows - 1;
+			if (ant.y >= rows) ant.y = 0;
+		}
+
+		function drawAntHead(ant: Ant) {
+			const px = ant.x * cellSize + cellSize / 2;
+			const py = ant.y * cellSize + cellSize / 2;
+
+			ctx!.save();
+
+			// Glowing neon halo in ant's color
+			ctx!.shadowColor = ant.color;
+			ctx!.shadowBlur = 22;
+			ctx!.fillStyle = ant.color;
+			ctx!.beginPath();
+			ctx!.arc(px, py, cellSize * 0.45, 0, Math.PI * 2);
+			ctx!.fill();
+
+			// Bright core (white-hot center)
+			ctx!.fillStyle = '#FFFFFF';
+			ctx!.shadowBlur = 10;
+			ctx!.beginPath();
+			ctx!.arc(px, py, cellSize * 0.22, 0, Math.PI * 2);
+			ctx!.fill();
+
+			// Antenna pointing in ant's direction
+			ctx!.strokeStyle = '#FFFFFF';
+			ctx!.lineWidth = 2.5;
+			ctx!.beginPath();
+			ctx!.moveTo(px, py);
+			const angles = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];
+			const angle = angles[ant.dir];
+			ctx!.lineTo(
+				px + Math.cos(angle) * (cellSize * 0.85),
+				py + Math.sin(angle) * (cellSize * 0.85)
+			);
+			ctx!.stroke();
+
+			ctx!.restore();
+		}
+
+		function drawBirthEffects() {
+			for (let i = birthEffects.length - 1; i >= 0; i--) {
+				const fx = birthEffects[i];
+				fx.radius += 2.2;
+				fx.alpha -= 0.035;
+
+				if (fx.alpha <= 0) {
+					birthEffects.splice(i, 1);
+				} else {
+					ctx!.save();
+					ctx!.strokeStyle = fx.color;
+					ctx!.lineWidth = 3;
+					ctx!.globalAlpha = fx.alpha;
+					ctx!.shadowColor = fx.color;
+					ctx!.shadowBlur = 25;
+					ctx!.beginPath();
+					ctx!.arc(fx.x, fx.y, fx.radius, 0, Math.PI * 2);
+					ctx!.stroke();
+
+					// Inner spark
+					ctx!.fillStyle = '#FFFFFF';
+					ctx!.globalAlpha = fx.alpha * 0.8;
+					ctx!.beginPath();
+					ctx!.arc(fx.x, fx.y, Math.max(1, fx.radius * 0.2), 0, Math.PI * 2);
+					ctx!.fill();
+
+					ctx!.restore();
+				}
+			}
+		}
+
+		function loop() {
+			// Fluid dissipation (smoke dissolve effect)
+			ctx!.fillStyle = 'rgba(8, 9, 13, 0.035)';
+			ctx!.shadowBlur = 0;
+			ctx!.fillRect(0, 0, width, height);
+
+			// Synchronous sub-step execution
+			for (let step = 0; step < speed; step++) {
+				for (let i = 0; i < ants.length; i++) {
+					stepAnt(ants[i]);
+				}
+				checkReproduction();
+			}
+
+			// Render all ant heads
+			for (let i = 0; i < ants.length; i++) {
+				drawAntHead(ants[i]);
+			}
+
+			// Render glowing birth ripples
+			drawBirthEffects();
+
+			requestAnimationFrame(loop);
+		}
+
+		loop();
+	}
+
+	initLangtonFluid();
+	document.addEventListener('astro:after-swap', initLangtonFluid);
+</script>
+
+<style>
+	.langton-canvas-wrap {
+		position: fixed;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.langton-canvas-wrap::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			ellipse 70% 50% at 50% 48%,
+			rgba(8, 9, 13, 0.78) 0%,
+			rgba(8, 9, 13, 0.45) 45%,
+			rgba(8, 9, 13, 0.15) 75%,
+			transparent 100%
+		);
+		pointer-events: none;
+	}
+
+	#langton-fluid-canvas {
+		display: block;
+		width: 100vw;
+		height: 100vh;
+	}
+</style>

@@ -71,12 +71,12 @@ const socialLinks = [
 		align-items: center;
 		gap: 0.85rem;
 		padding: 0.6rem 0.9rem;
-		background: rgba(255, 255, 255, 0.7);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		border: 1px solid rgba(0, 0, 0, 0.08);
+		background: rgba(16, 18, 26, 0.65);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: 9999px;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 	}
 
 	.social-circle {
@@ -86,9 +86,9 @@ const socialLinks = [
 		width: 44px;
 		height: 44px;
 		border-radius: 50%;
-		background: #ffffff;
-		border: 1.5px solid rgba(0, 0, 0, 0.12);
-		color: #111111;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		color: #e5e7eb;
 		text-decoration: none;
 		transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 		will-change: transform, box-shadow;
@@ -104,9 +104,10 @@ const socialLinks = [
 	/* Micro-interacciones dinámicas al hacer hover */
 	.social-circle:hover {
 		transform: translateY(-4px) scale(1.12);
-		border-color: #000000;
-		color: #000000;
-		box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+		background: rgba(255, 255, 255, 0.12);
+		border-color: #00f5ff;
+		color: #00f5ff;
+		box-shadow: 0 0 20px rgba(0, 245, 255, 0.35);
 	}
 
 	.social-circle:hover .icon {
