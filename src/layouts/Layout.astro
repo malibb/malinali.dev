@@ -1,0 +1,80 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+	lang?: string;
+}
+
+const currentLocale = Astro.currentLocale || 'es';
+const {
+	title = 'Malinali Becerril Bernal · Software Engineer & Tech Lead',
+	description = 'Portfolio y CV de Malinali Becerril Bernal — Software Engineer, Full Stack & Tech Lead.',
+	lang = currentLocale,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+
+		<!-- Font preloads for zero FOUT / layout shift -->
+		<link
+			rel="preload"
+			href="/fonts/MangoGrotesque-Black.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/MangoGrotesque-Regular.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+
+		<ClientRouter />
+
+		<!-- Language Auto-Detection (Client-side) -->
+		<script is:inline>
+			(function () {
+				try {
+					const path = window.location.pathname;
+					const preferred = localStorage.getItem('preferred_locale');
+					const browserLang = (navigator.language || '').toLowerCase();
+
+					// If on root page without explicit user preference and browser is English, route to /en
+					if (path === '/' && !preferred && browserLang.startsWith('en')) {
+						window.location.replace('/en');
+					}
+				} catch (e) {
+					// Silent fallback if storage is blocked
+				}
+			})();
+		</script>
+
+		<!-- Google Analytics -->
+		<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-4ZPS06YFQE"></script>
+		<script is:inline>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag('js', new Date());
+			gtag('config', 'G-4ZPS06YFQE');
+		</script>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>

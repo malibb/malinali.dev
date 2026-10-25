@@ -1,0 +1,73 @@
+---
+import { languages } from '../i18n/ui';
+
+const currentLocale = Astro.currentLocale || 'es';
+const currentPath = Astro.url.pathname;
+
+function getLocalizedPath(targetLocale: string) {
+	if (targetLocale === 'es') {
+		// Remove /en prefix if present
+		return currentPath.replace(/^\/en(\/|$)/, '/') || '/';
+	} else {
+		// Add /en prefix if not present
+		if (currentPath.startsWith('/en')) return currentPath;
+		return `/en${currentPath.startsWith('/') ? currentPath : `/${currentPath}`}`;
+	}
+}
+---
+
+<nav class="language-picker" aria-label="Selector de idioma">
+	{
+		Object.entries(languages).map(([locale, label]) => {
+			const isActive = locale === currentLocale;
+			return (
+				<a
+					href={getLocalizedPath(locale)}
+					class={isActive ? 'active' : ''}
+					aria-current={isActive ? 'page' : undefined}
+					data-locale={locale}
+				>
+					{locale.toUpperCase()}
+				</a>
+			);
+		})
+	}
+</nav>
+
+<script is:inline>
+	// Record language preference when clicked
+	document.addEventListener('click', (e) => {
+		const target = e.target.closest('[data-locale]');
+		if (target) {
+			const locale = target.getAttribute('data-locale');
+			if (locale) localStorage.setItem('preferred_locale', locale);
+		}
+	});
+</script>
+
+<style>
+	.language-picker {
+		display: inline-flex;
+		gap: 0.5rem;
+		align-items: center;
+		font-family: inherit;
+		font-size: 0.875rem;
+		font-weight: 600;
+	}
+	.language-picker a {
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		text-decoration: none;
+		color: inherit;
+		opacity: 0.6;
+		transition: opacity 0.2s;
+	}
+	.language-picker a:hover {
+		opacity: 1;
+	}
+	.language-picker a.active {
+		opacity: 1;
+		font-weight: 700;
+		text-decoration: underline;
+	}
+</style>

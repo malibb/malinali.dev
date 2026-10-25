@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+	const projects = await getCollection('projects');
+	return projects.map((entry) => ({
+		params: { slug: entry.id },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Layout title={`${entry.data.title} · Malinali Becerril`}>
+	<main>
+		<a href="/">← Volver</a>
+		<h1>{entry.data.title}</h1>
+		<p>{entry.data.description}</p>
+		<div class="tags">
+			{entry.data.tags.map((tag: string) => <span>{tag}</span>)}
+		</div>
+		<article>
+			<Content />
+		</article>
+	</main>
+</Layout>

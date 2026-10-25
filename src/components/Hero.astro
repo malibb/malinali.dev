@@ -1,0 +1,124 @@
+---
+import { useTranslations } from '../i18n/utils';
+
+const currentLocale = (Astro.currentLocale || 'es') as 'es' | 'en';
+const t = useTranslations(currentLocale);
+---
+
+<main class="hero">
+	<div class="hero-interactive">
+		<h1 class="hero-title">
+			Malinali Becerril Bernal
+		</h1>
+		<p class="hero-role">
+			{t('hero.role')}
+		</p>
+	</div>
+</main>
+
+<style>
+	.hero {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 4rem 2rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		overflow: hidden;
+	}
+
+	.hero-interactive {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+		will-change: transform;
+		cursor: default;
+	}
+
+	.hero-interactive:hover {
+		transform: scale(1.07);
+	}
+
+	.hero-title {
+		font-size: clamp(2.5rem, 6.5vw, 5rem);
+		margin: 1.25rem 0 0.5rem;
+		line-height: 1.05;
+		font-weight: 900;
+		opacity: 0;
+		transform: translate(-100vw, 30px);
+		animation: titleCollideAndRise 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		will-change: transform, opacity;
+	}
+
+	.hero-role {
+		font-size: 1.25rem;
+		margin: 0.75rem 0;
+		font-weight: 500;
+		opacity: 0;
+		transform: translate(100vw, -30px);
+		animation: subtitleCollideAndDrop 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		will-change: transform, opacity;
+	}
+
+	@keyframes titleCollideAndRise {
+		0% {
+			opacity: 0;
+			transform: translate(-100vw, 30px);
+		}
+		15% {
+			opacity: 1;
+		}
+		/* 1. Llega al centro sobre la misma línea */
+		38% {
+			transform: translate(0, 30px);
+		}
+		/* 2. PAUSA: se queda detenido cara a cara en la misma línea */
+		58% {
+			transform: translate(0, 30px);
+		}
+		/* 3. REBOTE: sale disparado hacia ARRIBA a su posición */
+		74% {
+			transform: translate(-12px, -18px) rotate(-1.5deg);
+		}
+		86% {
+			transform: translate(3px, 4px) rotate(0.4deg);
+		}
+		/* 4. Posición final de reposo arriba */
+		100% {
+			opacity: 1;
+			transform: translate(0, 0) rotate(0deg);
+		}
+	}
+
+	@keyframes subtitleCollideAndDrop {
+		0% {
+			opacity: 0;
+			transform: translate(100vw, -30px);
+		}
+		15% {
+			opacity: 1;
+		}
+		/* 1. Llega al centro sobre la misma línea */
+		38% {
+			transform: translate(0, -30px);
+		}
+		/* 2. PAUSA: se queda detenido cara a cara en la misma línea */
+		58% {
+			transform: translate(0, -30px);
+		}
+		/* 3. REBOTE: es empujado hacia ABAJO a su posición */
+		74% {
+			transform: translate(12px, 18px) rotate(1.5deg);
+		}
+		86% {
+			transform: translate(-3px, -4px) rotate(-0.4deg);
+		}
+		/* 4. Posición final de reposo abajo */
+		100% {
+			opacity: 1;
+			transform: translate(0, 0) rotate(0deg);
+		}
+	}
+</style>
