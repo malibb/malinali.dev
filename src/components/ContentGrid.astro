@@ -38,7 +38,6 @@ const inventory = getInventory(currentLocale);
 				<button type="button" class="term-macro" data-cmd="teaching" title={locale === 'es' ? 'Inspeccionar labor docente y liderazgo' : 'Inspect teaching & leadership'}>teaching</button>
 				<button type="button" class="term-macro" data-cmd="community" title={locale === 'es' ? 'Inspeccionar rol en comunidades tech' : 'Inspect tech community roles'}>community</button>
 				<button type="button" class="term-macro" data-cmd="stack" title={locale === 'es' ? 'Ver arsenal técnico y stack' : 'View tech stack'}>stack</button>
-				<button type="button" class="term-macro" data-cmd="stats" title={locale === 'es' ? 'Ver atributos del sistema' : 'View system attributes'}>stats</button>
 				<button type="button" class="term-macro" data-cmd="clear" title={locale === 'es' ? 'Limpiar pantalla de la terminal' : 'Clear terminal screen'}>clear</button>
 			</div>
 		</div>
@@ -71,7 +70,7 @@ const inventory = getInventory(currentLocale);
 					id="term-input"
 					autocomplete="off"
 					spellcheck="false"
-					placeholder={currentLocale === 'es' ? "escribe 'help', 'scopely', 'stats'..." : "type 'help', 'scopely', 'stats'..."}
+					placeholder={currentLocale === 'es' ? "escribe 'help', 'scopely', 'stack'..." : "type 'help', 'scopely', 'stack'..."}
 				/>
 				<button type="button" class="term-exec-btn font-mono" id="term-exec-btn">EXEC</button>
 			</div>
@@ -151,7 +150,6 @@ const inventory = getInventory(currentLocale);
 							<div><strong class="neon-cyan">teaching</strong> - ${locale === 'es' ? 'Lead Mentor TECNOLOchicas & Coordinadora 50+ Senseis' : 'Lead Mentor TECNOLOchicas & 50+ Senseis Coordinator'}</div>
 							<div><strong class="neon-cyan">community</strong> - ${locale === 'es' ? 'Google for Startups Accelerator Mentor & WTM Ambassador' : 'Google for Startups Accelerator Mentor & WTM Ambassador'}</div>
 							<div><strong class="neon-cyan">stack</strong> - ${locale === 'es' ? 'Arsenal Técnico Políglota & Ing. Sistemas ESCOM IPN' : 'Polyglot Tech Arsenal & B.S. ESCOM IPN'}</div>
-							<div><strong class="neon-cyan">stats</strong> - ${locale === 'es' ? 'Atributos de sistema (Scale 95%, Systems 98%, Community 99%)' : 'System attributes (Scale 95%, Systems 98%, Community 99%)'}</div>
 							<div><strong class="neon-cyan">all</strong> - ${locale === 'es' ? 'Muestra todo el historial de experiencia' : 'Display full experience log'}</div>
 							<div><strong class="neon-cyan">clear</strong> - ${locale === 'es' ? 'Limpia la pantalla de la terminal' : 'Clear terminal output buffer'}</div>
 						</div>
@@ -179,33 +177,6 @@ const inventory = getInventory(currentLocale);
 							<a href="https://calendar.app.google/494u6qZ5PayiiCsj6" target="_blank" rel="noopener noreferrer" style="color: #00f5ff; text-decoration: none; font-weight: 700; background: rgba(0, 245, 255, 0.12); border: 1px solid rgba(0, 245, 255, 0.4); padding: 0.4rem 0.95rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
 								<span>${locale === 'es' ? '📅 Abrir Calendario de Mentorías en Google Calendar →' : '📅 Open Mentorship Google Calendar →'}</span>
 							</a>
-						</div>
-					</div>
-				`;
-			} else if (query === 'stats') {
-
-				outputEl.innerHTML = `
-					<div class="stats-box">
-						<div class="stats-head neon-yellow">${locale === 'es' ? '// RATINGS DE ATRIBUTOS DEL SISTEMA:' : '// SYSTEM ATTRIBUTE RATINGS:'}</div>
-						<div class="stat-line">
-							<span class="s-name">STR (Scale & Concurrency):</span>
-							<div class="s-bar"><div class="s-fill" style="width: 95%; background: #ffe600; box-shadow: 0 0 8px #ffe600;"></div></div>
-							<span class="s-val neon-yellow">95%</span>
-						</div>
-						<div class="stat-line">
-							<span class="s-name">INT (Systems & Architecture):</span>
-							<div class="s-bar"><div class="s-fill" style="width: 98%; background: #00f5ff; box-shadow: 0 0 8px #00f5ff;"></div></div>
-							<span class="s-val neon-cyan">98%</span>
-						</div>
-						<div class="stat-line">
-							<span class="s-name">CHA (Community & Mentorship):</span>
-							<div class="s-bar"><div class="s-fill" style="width: 99%; background: #ff007f; box-shadow: 0 0 8px #ff007f;"></div></div>
-							<span class="s-val neon-pink">99%</span>
-						</div>
-						<div class="stat-line">
-							<span class="s-name">AGI (Full Stack & GenAI):</span>
-							<div class="s-bar"><div class="s-fill" style="width: 92%; background: #ccff00; box-shadow: 0 0 8px #ccff00;"></div></div>
-							<span class="s-val neon-lime">92%</span>
 						</div>
 					</div>
 				`;

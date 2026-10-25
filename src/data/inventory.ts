@@ -29,8 +29,8 @@ export function getInventory(locale: 'es' | 'en'): InventoryItem[] {
 				? 'Periodo sabático de 6 meses enfocado en mentoría estratégica, aprendizaje continuo y proyectos de innovación personal tras etapas de alto impacto en Gaming y EdTech (Scopely, LootMint y DEV.F).'
 				: '6-month intentional career break focused on strategic mentorship, continuous learning, and personal innovation following high-impact leadership in Gaming & EdTech (Scopely, LootMint, DEV.F).',
 			lore: locale === 'es'
-				? 'Efecto de estado: +100 Mentoría Estratégica, +80 Exploración GenAI, Regeneración de Enfoque al 100%.'
-				: 'Status Effect: +100 Strategic Advisory, +80 GenAI Research, Focus Regeneration at 100%.',
+				? 'Enfoque Activo: Mentoría estratégica 1:1, exploración continua en GenAI e investigación técnica.'
+				: 'Active Focus: 1:1 strategic advisory, active GenAI research, and high-impact technical initiatives.',
 			stats: [
 				{ name: 'DURATION', val: '6 MONTHS' },
 				{ name: 'FOCUS', val: 'MENTORSHIP & AI' },
